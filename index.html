@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>单元测试报告</title>
+
+    <style type="text/css">
+        *{ maring:0;padding:0;font-family: Helvetica }
+        body { background: #f7f7f7 }
+
+        .container
+        {
+            width:1140px;
+            margin: 0 auto;
+            background: #fff;
+            min-height: 20px;
+            padding: 15px 20px;
+        }
+
+        .container .bar-title
+        {
+            font-size:18px;
+            line-height: 30px;
+            color:#333;
+        }
+
+        .container-boxshadow
+        {
+            box-shadow: 1px 1px 1px rgba(66,66,66,0.3);
+        }
+
+        .container .bar-reports-table
+        {
+            width:100%;
+            margin-top: 15px;
+        }
+
+        .container .bar-reports-table thead th
+        {
+            font-size:15px;
+            text-align: left;
+            line-height: 35px;
+            color: #3F3F3F;
+            padding: 0 12px;
+        }
+
+        .container .bar-reports-table thead th
+        {
+            /*border-bottom: 1px solid#b6b6b6;*/
+        }
+
+        .container .bar-reports-table tbody tr
+        {
+        }
+
+        .container .bar-reports-table tbody tr td
+        {
+            font-size:14px;
+            line-height: 30px;
+            padding: 0 12px;
+        }
+
+        .report-content
+        {
+            cursor: pointer;
+        }
+
+        .report-content:hover
+        {
+            opacity: 0.8;
+        }
+
+        td:hover
+        {
+            display: block;
+            background: #fe6629;
+            color:#fff;
+        }
+
+        td:hover .report_content-show
+        {
+            display: block;
+            background: #f00;
+            color:#333!important;
+        }
+
+        .report_content-show
+        {
+            display: none;
+        }
+
+        ul
+        {
+            list-style-type: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        ul li
+        {
+            /*margin: 20px 0;*/
+        }
+
+
+
+        .bar-reports-item
+        {
+            list-style-type: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        .clearboth
+        {
+            clear:both;
+            white-space: pre-wrap;
+        }
+
+    </style>
+</head>
+<body>
+
+
+<div class="container container-boxshadow" >
+    <div class="bar-title">
+        单元测试报告
+    </div>
+
+    <table id="unit-test-reports" class="bar-reports-table" cellspacing="0">
+        <thead>
+        <th>名称</th>
+        <th>结果</th>
+        <th>类型</th>
+        <th>信息</th>
+        <th>耗时</th>
+        </thead>
+        <tbody  >
+        </tbody>
+        <tfoot></tfoot>
+    </table>
+</div>
+
+<div class="container container-boxshadow" style="margin-top: 15px;" >
+    <div class="bar-title">
+        单元测试代码覆盖率
+    </div>
+    <ul id="unit-coverage-reports" class="bar-reports-coverage">
+        <li>
+            <!--                <div>-->
+            <!--                    <div>{name}</div>-->
+            <!--                    <div>-->
+            <!--                        coveredLines:{lines}-->
+            <!--                    </div>-->
+            <!--                    <div>-->
+            <!--                        executableLines:{exected}-->
+            <!--                    </div>-->
+            <!--                    <div id="target-total-app"></div>-->
+            <!--                </div>-->
+            <!--                <ul class="bar-reports-item" >-->
+            <!--                    <li>-->
+            <!--                        <div></div>-->
+            <!--                        <div></div>-->
+            <!--                        <div class="clearboth"></div>-->
+            <!--                    </li>-->
+            <!--                </ul>-->
+        </li>
+    </ul>
+</div>
+
+
+
+</body>
+</html>
+
+<script type="text/javascript" src="./coverage.js"></script>
+<script type="text/javascript" src="./reports.js"></script>
+<script type="text/javascript">
+
+    window.onload = function () {
+        // console.log(unitCoverageReports)
+        // console.log(unitTestReports)
+
+
+
+        generatorTableRows(unitTestReports, 0, null);
+
+        var targets = [];
+        for (var i = 0;i<unitCoverageReports.targets.length;i++)
+        {
+            var item = unitCoverageReports.targets[i];
+            if (item.name.substr(item.name.length - 4, 4) == ".app")
+            {
+                targets.push(item);
+            }
+        }
+        geneartorCoverageRows(targets, 0);
+
+
+
+        // var progress = coverageProgress({
+        //     width:400,
+        //     height:25,
+        //     per:0.09
+        // });
+        // document.getElementById("target-total-app").appendChild(progress);
+    };
+
+    function generatorTableRows(rows, index, parent) {
+        if (index >= rows.length)
+        {
+            return;
+        }
+        var item = rows[index];
+        if (parent)
+        {
+            item.backupname = item.name;
+            item.name = parent+"_"+item.name;
+        } else {
+            item.backupname = item.name;
+        }
+
+        inserTableRow(item);
+        if ((item.subs || []).length > 0)
+        {
+            generatorTableRows(item.subs, 0, item.name.replace(new RegExp(item.backupname, "g"), "__"));
+        }
+        index++;
+        generatorTableRows(rows, index, parent);
+    }
+
+    function $(selector) {
+        return document.getElementById(selector);
+    }
+
+    function insertTableRows(rows) {
+        for (var i = 0; i<rows.length; i++)
+        {
+            inserTableRow(rows[i]);
+        }
+    }
+
+    function inserTableRow(obj) {
+        var domTable = $("unit-test-reports");
+        var tbodyDom = domTable.children[1];
+        // var bgColor = tbodyDom.children.length%2 == 0?"#688cfe":"#9f4d47";
+        var bgColor = obj.type=="suite"?"#9f4e20":"#34abfe";
+        var fontColor = tbodyDom.children.length%2?"#3F3F3F":"#3F3F3F";
+
+
+        var tr = document.createElement("tr");
+        tr.setAttribute("style", "background:"+bgColor+";color:"+fontColor+";position:relative;");
+        for (var key in obj)
+        {
+            if (key == "subs")
+            {
+                continue;
+            }
+            else if (key == "message")
+            {
+                var td = document.createElement("td");
+                td.setAttribute("style","position:relative;")
+                var div = document.createElement("div");
+                div.innerText = obj[key] || "";
+                div.setAttribute("style","position:relative;width:240px;max-height:120px;overflow:hidden;text-overflow: ellipsis;white-space:nowrap;");
+                div.setAttribute("class", "report-content");
+                td.appendChild(div);
+                tr.appendChild(td);
+
+                var shadowDom = document.createElement("div");
+                shadowDom.innerText = obj[key] || "";
+                shadowDom.setAttribute("style","width:350px;position:absolute;background:#f7f7f7;left:0;font-size:12px;z-index:9999;line-height:16px;white-space:pre-wrap;padding:12px 12px;word-wrap:break-word;box-shadow:1px 1px 1px rgba(3,3,3,0.3)");
+                shadowDom.setAttribute("class", "report_content-show");
+                td.appendChild(shadowDom);
+            }
+            else
+            {
+                var td = document.createElement("td");
+
+                var val = obj[key] || "";
+                if (key == "name")
+                {
+                    val = "|"+val;
+                }
+
+                td.innerText = val;
+                tr.appendChild(td);
+            }
+        }
+
+        tbodyDom.appendChild(tr);
+    }
+
+
+    function coverageProgress(options) {
+        var width = options.width;
+        var height = options.height;
+        var cover = options.cover;
+        var total = options.total;
+        var perct = options.per;
+        var paddingLeft = 25;
+        var paddingTop = 5;
+
+
+        var container = document.createElement("div");
+        container.setAttribute("style", "position:relative;width:"+width+"px;height:"+height+"px;padding:"+paddingTop+"px "+paddingLeft+"px;");
+
+        var totalDiv = document.createElement("div");
+        totalDiv.setAttribute("style", "width:"+(width-paddingLeft*2)+"px;height:"+(height-paddingTop*2)+"px;background:#f94a51;");
+        container.appendChild(totalDiv);
+
+        var progressDiv = document.createElement("div");
+        progressDiv.setAttribute("style", "width:"+(((width-paddingLeft*2)*perct).toFixed(2))+"px;height:100%;background:#6ad16d;");
+        totalDiv.appendChild(progressDiv);
+
+        var labelC = document.createElement("div");
+        labelC.setAttribute("style", "position:absolute;right:0;top:0;height:100%;");
+
+        var label = document.createElement("div");
+        label.innerText = (perct*100).toFixed(2)+"%";
+        label.setAttribute("style", "font-size:17px;line-height:"+(height)+"px");
+        labelC.appendChild(label);
+
+        container.appendChild(labelC);
+
+
+        return container;
+    }
+
+
+
+
+    function createTarget(obj) {
+        var coverTargetTemplate = "<div style='background: #28939f;padding: 12px 12px;' >\n" +
+            "                    <div style='float:left;line-height:25px;'>{name}</div>\n" +
+            "                    <div style='float:left;'>{progress}</div>\n" +
+            "                    <div class='clearboth'></div>\n" +
+            "                    <div>{files}</div>\n" +
+            "                </div>";
+
+        var template = coverTargetTemplate;
+        for (var key in obj)
+        {
+            template = template.replace(new RegExp("{"+key+"}", "g"), obj[key]);
+        }
+        var progressDiv = coverageProgress({
+            width:400,
+            height:25,
+            per:obj.lineCoverage
+        });
+        var tmpDom = document.createElement("div");
+        tmpDom.appendChild(progressDiv);
+        template = template.replace(new RegExp("{progress}", "g"), tmpDom.innerHTML);
+
+
+        var filesHTML = generatorCoverageFiles(obj.books, 0);
+        template = template.replace(new RegExp("{files}", "g"), filesHTML);
+
+
+        return template;
+    }
+
+    function geneartorCoverageRows(rows, index) {
+        if (index >= rows.length)
+        {
+            return;
+        }
+        var item = rows[index];
+        var domHtml = createTarget({
+            name:item.name,
+            lines:item.coveredLines,
+            exected:item.executableLines,
+            lineCoverage:item.lineCoverage,
+            books:item.files
+        });
+
+        var covergateContainer = document.getElementById("unit-coverage-reports");
+        var liDom = document.createElement("li");
+        liDom.innerHTML = domHtml;
+        covergateContainer.appendChild(liDom);
+
+
+        index++;
+        geneartorCoverageRows(rows, index);
+    }
+
+    function createFileTemplate(file) {
+        var coverTargetTemplate = "<div>\n" +
+            "                    <div style='float:left;line-height: 25px;'>|__&nbsp;&nbsp;{name}</div>\n" +
+            "                    <div style='float:left;'>{progress}</div>\n" +
+            "                    <div class='clearboth'></div>\n" +
+            "                    <div>{fns}</div>\n" +
+            "                </div>";
+
+        var template = coverTargetTemplate;
+        for (var key in file)
+        {
+            template = template.replace(new RegExp("{"+key+"}", "g"), file[key]);
+        }
+        var progressDiv = coverageProgress({
+            width:400,
+            height:25,
+            per:file.lineCoverage
+        });
+        var tmpDom = document.createElement("div");
+        tmpDom.appendChild(progressDiv);
+        template = template.replace(new RegExp("{progress}", "g"), tmpDom.innerHTML);
+
+        var fnTemplate = "<ul>";
+
+
+        file.functions.sort(function (itemA, itemB) {
+            return itemB.lineCoverage - itemA.lineCoverage
+        });
+
+        for (var i = 0;i<file.functions.length;i++)
+        {
+            var fn = file.functions[i];fnTemplate += "<li style='background: #1e99fe;padding: 0 12px;'>";
+
+            var fnC = coverageProgress({
+                width:200,
+                height:25,
+                per:fn.lineCoverage
+            });
+            var fmTmpDom = document.createElement("div");
+            fmTmpDom.appendChild(fnC);
+
+            var fnT = "<div style='font-size:14px;float: left;line-height: 25px;font-weight: bold;color:#e7e7e7;'>|________&nbsp;&nbsp;"+fn.name+"</div>" +
+                "<div style='float: left;'>"+fmTmpDom.innerHTML+"</div><div class='clearboth'></div>";
+
+            fnTemplate += fnT;
+            fnTemplate += "</li>";
+        }
+        fnTemplate += "</ul>";
+        template = template.replace(new RegExp("{fns}", "g"), fnTemplate);
+
+
+        return template;
+
+    }
+
+    function generatorCoverageFiles(files, index) {
+        if (index >= files.length)
+        {
+            return;
+        }
+
+        var template = "<ul>";
+
+        files.sort(function (itemA, itemB) {
+            return itemB.lineCoverage - itemA.lineCoverage
+        });
+
+        for (var i = 0; i < files.length; i++)
+        {
+            var file = files[i];
+
+            template += "<li style='background: #9e3afe;padding: 0 12px;'>";
+            template += createFileTemplate(file);
+            template += "</li>";
+        }
+
+        template += "</ul>";
+
+        return template
+    }
+
+</script>
+
